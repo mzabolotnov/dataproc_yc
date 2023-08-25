@@ -1,3 +1,4 @@
 terraform/1/s3-dataproc-ch copy.tf
 terraform/1/vpc.tf
 terraform/2/s3-dataproc-ch.tf
+terraform/state_man
