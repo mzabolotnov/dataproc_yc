@@ -1,7 +1,6 @@
 from pyspark.sql import SparkSession
 import sys
 
-jdbcHostname = sys.argv[1]
 # Создание Spark-сессии
 spark = SparkSession.builder.appName("ParquetClickhouse").getOrCreate()
 
@@ -11,8 +10,8 @@ parquetFile.show()
 
 # Указание порта и параметров кластера ClickHouse
 jdbcPort = 8443
-jdbcHostname = sys.argv[1]
-# jdbcHostname = "c-c9q3geklo4ihhuh5lrvs.rw.mdb.yandexcloud.net"
+# jdbcHostname = sys.argv[1]
+jdbcHostname = ""
 jdbcDatabase = "db1"
 jdbcUrl = f"jdbc:clickhouse://{jdbcHostname}:{jdbcPort}/{jdbcDatabase}?ssl=true"
 
