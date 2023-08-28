@@ -15,7 +15,7 @@
     lineinfile:
      path: /home/ubuntu/dataproc_yc/spark/pq_to_ch.py
      regexp: '^jdbcHostname = '
-     line: jdbcHostname = {{ ch_raw_link }}
+     line: jdbcHostname = "{{ ch_raw_link }}"
 
   # - name: Transform log-file to parquet-file
   #   # shell: "{{ item }}"
