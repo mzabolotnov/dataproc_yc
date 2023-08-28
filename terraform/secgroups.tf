@@ -42,6 +42,13 @@ resource "yandex_vpc_security_group" "dataproc-security-group" {
     port           = 8443
     v4_cidr_blocks = ["0.0.0.0/0"]
   }
+    egress {
+    description    = "Allow connections apt packet menager"
+    protocol       = "TCP"
+    port           = 80
+    v4_cidr_blocks = ["0.0.0.0/0"]
+  }
+
 }
 
 resource "yandex_vpc_security_group" "mch_security_group" {
