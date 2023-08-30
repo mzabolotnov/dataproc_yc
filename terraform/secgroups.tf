@@ -48,6 +48,13 @@ resource "yandex_vpc_security_group" "dataproc-security-group" {
     port           = 80
     v4_cidr_blocks = ["0.0.0.0/0"]
   }
+    egress {
+    description    = "Allow connections clickhouse-client"
+    protocol       = "TCP"
+    port           = 9440
+    v4_cidr_blocks = ["0.0.0.0/0"]
+  }
+
 
 }
 

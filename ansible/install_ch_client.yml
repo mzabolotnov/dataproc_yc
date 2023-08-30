@@ -1,0 +1,49 @@
+---
+- name: Install
+  hosts: all
+  become: true
+  # become_method: enable
+  tasks:
+  - name: mkdir /usr/local/share/ca-certificates/Yandex
+    file:
+      path: /usr/local/share/ca-certificates/Yandex
+      state: directory
+    
+  - name: Download file CA.pem
+    get_url:
+     url: https://storage.yandexcloud.net/cloud-certs/CA.pem
+     dest: /usr/local/share/ca-certificates/Yandex/YandexInternalRootCA.crt
+     mode: 0644
+  
+  - name: install apt-transport-https ca-certificates dirmngr
+    apt: name={{ item }} update_cache=yes state=latest
+    with_items:
+         - apt-transport-https
+         - ca-certificates
+         - dirmngr
+  
+  - name: Add key, add repository Clickhouse-client
+    shell: "{{ item }}"
+    loop:
+     - "apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 8919F6BD2B48D754"
+     - "echo 'deb https://packages.clickhouse.com/deb stable main' | sudo tee /etc/apt/sources.list.d/clickhouse.list"
+
+  - name: install clickhouse-client
+    apt: name={{ item }} update_cache=yes state=latest
+    with_items:
+        - clickhouse-client
+  
+  - name: mkdir ~/.clickhouse-client
+    become: false
+    file:
+      path: ~/.clickhouse-client
+      state: directory
+  
+  - name: Download file clickhouse-client.conf
+    become: false
+    get_url:
+     url: https://storage.yandexcloud.net/doc-files/clickhouse-client.conf.example
+     dest: ~/.clickhouse-client/config.xml
+     mode: 0644
+
+  

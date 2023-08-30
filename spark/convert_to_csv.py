@@ -71,10 +71,6 @@ def main():
           time1 =  time.time() 
           spark = SparkSession.builder.appName("log_stat").getOrCreate()
           file_transform = file_proc("projectdata1","V_$LOGMNR_CONTENTS_utf8.csv","V_$LOGMNR_CONTENTS_utf8.csv_t",spark)
-          # url =  ''.join(("https://storage.yandexcloud.net/projectdata1/V_$LOGMNR_CONTENTS_utf8.csv?X-Amz",
-          #                 "-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=YCAJEl-fX5x6Qzz51nfAktbOo%2F20230825%2Fru",
-          #                 "-central1%2Fs3%2Faws4_request&X-Amz-Date=20230825T113421Z&X-Amz-Expires=3600&X-Amz",
-          #                 "-Signature=3F069F6B69072221CC606F0671AF08C80083AB2C7B46C3A1AE3FAC1855C194D3&X-Amz-SignedHeaders=host"))
           # file_transform.dowload_file_from_bucket(url)
           file_transform.read_file_from_bucket()
           file_transform.move_file_from_hdfs()
@@ -110,8 +106,11 @@ def main():
           rows = log_ora_transform.count()
           print(f"DataFrame Rows count : {rows}")
 
-          log_ora_transform.write.mode('overwrite').parquet("s3a://dprocoutlog/parquet/")
-          log_ora_transform = spark.read.parquet("s3a://dprocoutlog/parquet/")
+          # log_ora_transform.write.mode('overwrite').options(header='True').csv("csv/")
+          # log_ora_transform = spark.read.options(header='True').csv("csv/")
+
+          log_ora_transform.write.mode('overwrite').options(header='True').csv("s3a://dprocoutlog/csv/")
+          log_ora_transform = spark.read.options(header='True').csv("s3a://dprocoutlog/csv/")
           log_ora_transform.show()
           log_ora_transform.printSchema()
           rows = log_ora_transform.count()
