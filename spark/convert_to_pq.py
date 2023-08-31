@@ -105,17 +105,21 @@ def main():
           log_ora_transform = log_ora_transform.withColumn('TimeStamp',F.regexp_replace('TimeStamp', "\.", '-'))
           log_ora_transform = log_ora_transform.withColumn('TimeStamp',F.to_timestamp(F.col('TimeStamp'),"dd-MM-yyyy H:mm:ss"))
           log_ora_transform = log_ora_transform.drop('TS_IN_STRING')
+          log_ora_transform = log_ora_transform.filter(~F.col("SCN").rlike("\'"))
+          log_ora_transform = log_ora_transform.filter(~F.col("SCN").rlike("<"))
+
+
           log_ora_transform.show()
           log_ora_transform.printSchema()
           rows = log_ora_transform.count()
           print(f"DataFrame Rows count : {rows}")
 
           log_ora_transform.write.mode('overwrite').parquet("s3a://dprocoutlog/parquet/")
-          log_ora_transform = spark.read.parquet("s3a://dprocoutlog/parquet/")
-          log_ora_transform.show()
-          log_ora_transform.printSchema()
-          rows = log_ora_transform.count()
-          print(f"DataFrame Rows count : {rows}")
+          # log_ora_transform = spark.read.parquet("s3a://dprocoutlog/parquet/")
+          # log_ora_transform.show()
+          # log_ora_transform.printSchema()
+          # rows = log_ora_transform.count()
+          # print(f"DataFrame Rows count : {rows}")
           # log_ora_transform.filter(F.col("SCN") == '12934735784').show(truncate=False)
          
           time2 = time.time()

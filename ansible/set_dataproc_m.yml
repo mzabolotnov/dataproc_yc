@@ -7,44 +7,30 @@
     apt: name={{ item }} update_cache=yes state=latest
     with_items:
         - git
+
   - name: clone ropository
     git: 
         repo: https://github.com/mzabolotnov/dataproc_yc.git
         dest: /home/ubuntu/dataproc_yc
-  - name: Replace varible jdbcHostname
+        force: true
+  
+  - name: Replace varible jdbcHostname pq_to_ch.py
     lineinfile:
      path: /home/ubuntu/dataproc_yc/spark/pq_to_ch.py
      regexp: '^jdbcHostname = '
      line: jdbcHostname = "{{ ch_raw_link }}"
-
-  # - name: Transform log-file to parquet-file
-  #   # shell: "{{ item }}"
-  #   shell: "/usr/bin/spark-submit convert_to_pq.py"
-
-  #   # loop:
-  #   #    - "/usr/bin/spark-submit convert_to_pq.py"
-  #   #   #  - "echo 2"
-  #   args:
-  #        chdir: /home/ubuntu/dataproc_yc/spark
-  #       #  executable: /usr/bin/spark-submit
-
-  #   register: spark_res
-
-  # - name: Print return information from the previous task
-  #   debug:
-  #    var: spark_res.stdout
-  #    verbosity: 2
+    
+  - name: Replace varible jdbcHostname csv_to_ch.py
+    lineinfile:
+     path: /home/ubuntu/dataproc_yc/spark/csv_to_ch.py
+     regexp: '^jdbcHostname = '
+     line: jdbcHostname = "{{ ch_raw_link }}"
   
-  # - debug:
-  #      msg="{{ spark_res }}"
+  - name: Replace varible jdbcHostname clickhouse-client_run.sh
+    lineinfile:
+     path: /home/ubuntu/dataproc_yc/spark/clickhouse-client_run.sh
+     regexp: '--host'
+     line: clickhouse-client --host "{{ ch_raw_link }}" \
 
-  # - debug:
-  #      msg="{{ spark_res.result.stdout_lines }}"
-    # shell: set | grep SPARK >> somelog.txt
-    # # shell: /usr/bin/spark-submit convert_to_pq.py
-    # args:
-    #       chdir: ~/dataproc_yc/spark
-    #       executable: /bin/bash
-    #       creates: somelog.txt
-
+- import_playbook: ./install_ch_client.yml
   
