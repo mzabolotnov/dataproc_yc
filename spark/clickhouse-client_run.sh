@@ -1,9 +1,10 @@
 #!/bin/bash
 
 
-clickhouse-client --host c-c9q1dg4adc02478u5omv.rw.mdb.yandexcloud.net \
+host_clickhouse=$(awk 'NR==1 {print; exit}' ./ch_host)
+clickhouse-client --host "$host_clickhouse" \
                   --secure \
                   --user user1 \
                   --database db1 \
                   --port 9440 \
-                  --ask-password 
+                  --ask-password

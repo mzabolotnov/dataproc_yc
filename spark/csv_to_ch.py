@@ -14,7 +14,10 @@ OraLogDF.show()
 # Указание порта и параметров кластера ClickHouse
 jdbcPort = 8443
 # jdbcHostname = sys.argv[1]
-jdbcHostname = "c-c9q1dg4adc02478u5omv.rw.mdb.yandexcloud.net"
+file_ch_host = open("./ch_host", 'r')
+jdbcHostname = file_ch_host.readline().splitlines()[0]
+file_ch_host.close()
+# jdbcHostname = "c-c9q1dg4adc02478u5omv.rw.mdb.yandexcloud.net"
 jdbcDatabase = "db1"
 jdbcUrl = f"jdbc:clickhouse://{jdbcHostname}:{jdbcPort}/{jdbcDatabase}?ssl=true"
 

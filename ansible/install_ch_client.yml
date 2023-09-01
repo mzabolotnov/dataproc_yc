@@ -1,5 +1,5 @@
 ---
-- name: Install
+- name: Install Clickhouse-client
   hosts: all
   become: true
   # become_method: enable
