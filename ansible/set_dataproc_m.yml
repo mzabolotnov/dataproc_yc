@@ -1,5 +1,5 @@
 ---
-- name: Install
+- name: Set master-node Dataproc
   hosts: all
   tasks:
   - name: install git
@@ -7,30 +7,42 @@
     apt: name={{ item }} update_cache=yes state=latest
     with_items:
         - git
-
+    tags: install
+    
   - name: clone ropository
     git: 
         repo: https://github.com/mzabolotnov/dataproc_yc.git
         dest: /home/ubuntu/dataproc_yc
         force: true
+    tags: clone
   
-  - name: Replace varible jdbcHostname pq_to_ch.py
-    lineinfile:
-     path: /home/ubuntu/dataproc_yc/spark/pq_to_ch.py
-     regexp: '^jdbcHostname = '
-     line: jdbcHostname = "{{ ch_raw_link }}"
+  # - name: Replace varible jdbcHostname pq_to_ch.py
+  #   lineinfile:
+  #    path: /home/ubuntu/dataproc_yc/spark/pq_to_ch.py
+  #    regexp: '^jdbcHostname = '
+  #    line: jdbcHostname = "{{ ch_raw_link }}"
+  #   tags: sub
     
-  - name: Replace varible jdbcHostname csv_to_ch.py
-    lineinfile:
-     path: /home/ubuntu/dataproc_yc/spark/csv_to_ch.py
-     regexp: '^jdbcHostname = '
-     line: jdbcHostname = "{{ ch_raw_link }}"
-  
-  - name: Replace varible jdbcHostname clickhouse-client_run.sh
-    lineinfile:
-     path: /home/ubuntu/dataproc_yc/spark/clickhouse-client_run.sh
-     regexp: '--host'
-     line: clickhouse-client --host "{{ ch_raw_link }}" \
+  # - name: Replace varible jdbcHostname csv_to_ch.py
+  #   lineinfile:
+  #    path: /home/ubuntu/dataproc_yc/spark/csv_to_ch.py
+  #    regexp: '^jdbcHostname = '
+  #    line: jdbcHostname = "{{ ch_raw_link }}"
+  #   tags: sub
+
+  # - name: Replace varible jdbcHostname clickhouse-client_run.sh
+  #   lineinfile:
+  #    path: /home/ubuntu/dataproc_yc/spark/clickhouse-client_run.sh
+  #    regexp: '--host'
+  #    line: clickhouse-client --host "{{ ch_raw_link }}" \
+  #   tags: sub
+
+  - name: copy IP Clickhouse cluster to file
+    shell: "{{ item }}"
+    loop:
+     - "echo {{ ch_raw_link }} > ~/dataproc_yc/spark/ch_host"
+    tags: sub
+
 
 - import_playbook: ./install_ch_client.yml
   
