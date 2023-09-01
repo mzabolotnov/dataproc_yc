@@ -11,11 +11,12 @@ import os
 
 class file_proc:
   # import pydoop.hdfs as hdfs
-  def __init__(self,backet_name,file_in,file_out,spark_app):
+  def __init__(self,backet_name,file_in,file_out,spark_app,bucket_name_out):
       self.file_in = file_in
       self.file_out = file_out
       self.spark_app = spark_app
       self.bucket_name = backet_name
+      self.bucket_name_out = bucket_name_out 
 
   def read_file_from_bucket(self):
       log_ora = self.spark_app.read.text('s3a://'+self.bucket_name+'/'+self.file_in)
@@ -65,22 +66,8 @@ class file_proc:
         returned_value = os.system(cmd)
         print ("returned_code_put_file: ", returned_value)
 
-      
-
-def main():
-          time1 =  time.time() 
-          spark = SparkSession.builder.appName("log_stat").getOrCreate()
-          file_transform = file_proc("projectdata1","V_$LOGMNR_CONTENTS_utf8.csv","V_$LOGMNR_CONTENTS_utf8.csv_t",spark)
-          # file_transform.dowload_file_from_bucket(url)
-          file_transform.read_file_from_bucket()
-          file_transform.move_file_from_hdfs()
-          file_transform.transform_file()
-          file_transform.put_file_to_hdfs()
-          # time2 = time.time()
-          # delta_time = time2-time1
-          # print(delta_time)
-              
-          log_ora = spark.read.text(file_transform.file_out)
+  def transform_oralog(self):
+          log_ora = self.spark_app.read.text(self.file_out)
           header = log_ora.first()[0]
           header_list = header.split(',')
           log_ora = log_ora.filter(~(F.col("value").contains(header)))
@@ -103,24 +90,31 @@ def main():
           log_ora_transform = log_ora_transform.drop('TS_IN_STRING')
           log_ora_transform = log_ora_transform.filter(~F.col("SCN").rlike("\'"))
           log_ora_transform = log_ora_transform.filter(~F.col("SCN").rlike("<"))
-
-          # log_ora_transform = log_ora_transform.limit(100)
-          # log_ora_transform.show()
-          # log_ora_transform.printSchema()
-          # rows = log_ora_transform.count()
-          # print(f"DataFrame Rows count : {rows}")
-
-          # log_ora_transform.write.mode('overwrite').options(header='True').csv("csv/")
-          # log_ora_transform = spark.read.options(header='True').csv("csv/")
-
-          log_ora_transform.write.mode('overwrite').options(header='True').csv("s3a://dprocoutlog/csv/")
-          # log_ora_transform = spark.read.options(header='True').csv("s3a://dprocoutlog/csv/")
+          log_ora_transform.write.mode('overwrite').options(header='True').csv(self.bucket_name_out)
+          # log_ora_transform = spark.read.parquet("s3a://dprocoutlog/parquet/")
           log_ora_transform.show()
           log_ora_transform.printSchema()
           rows = log_ora_transform.count()
           print(f"DataFrame Rows count : {rows}")
           # log_ora_transform.filter(F.col("SCN") == '12934735784').show(truncate=False)
+    
+
+def main():
+          time1 =  time.time() 
+          spark = SparkSession.builder.appName("log_stat").getOrCreate()
+          file_transform = file_proc("projectdata1","V_$LOGMNR_CONTENTS_utf8.csv","V_$LOGMNR_CONTENTS_utf8.csv_t",spark,"s3a://dprocoutlog/csv/")
+          # file_transform.dowload_file_from_bucket(url)
+          file_transform.read_file_from_bucket()
+          file_transform.move_file_from_hdfs()
+          file_transform.transform_file()
+          file_transform.put_file_to_hdfs()
+          # time2 = time.time()
+          # delta_time = time2-time1
+          # print(delta_time)
+              
          
+          file_transform.transform_oralog()    
+
           time2 = time.time()
           delta_time = time2-time1
           print(delta_time)
