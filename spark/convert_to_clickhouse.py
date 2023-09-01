@@ -75,6 +75,28 @@ class file_proc:
         returned_value = os.system(cmd)
         print ("returned_code_cmd_file: ", returned_value)
 
+  def load_df_to_clickhouse(self,df):
+          jdbcPort = 8443
+          # jdbcHostname = sys.argv[1]
+          file_ch_host = open("./ch_host", 'r')
+          jdbcHostname = file_ch_host.readline().splitlines()[0]
+          file_ch_host.close()
+          print(jdbcHostname)
+          # jdbcHostname = "c-c9q1dg4adc02478u5omv.rw.mdb.yandexcloud.net"
+          jdbcDatabase = "db1"
+          jdbcUrl = f"jdbc:clickhouse://{jdbcHostname}:{jdbcPort}/{jdbcDatabase}?ssl=true"
+          
+          # Запись в ClickHouse-таблицу с именем csv_data_oralog
+          df.write.format("jdbc") \
+          .mode("overwrite") \
+          .option("url", jdbcUrl) \
+          .option("dbtable", "data_oralog") \
+          .option("createTableOptions", "ENGINE = MergeTree() ORDER BY SCN") \
+          .option("user","user1") \
+          .option("password","Tratatam;3434") \
+          .save()
+    
+  
   def transform_oralog(self):
           log_ora = self.spark_app.read.text(self.file_out)
           header = log_ora.first()[0]
@@ -100,36 +122,15 @@ class file_proc:
           log_ora_transform = log_ora_transform.filter(~((F.col("SCN").rlike("\'")) | (F.col("SCN"
                                                        ).rlike("<")) | (F.col("TimeStamp").cast(
                                                        'string').rlike("1970"))))
-          #log_ora_transform = log_ora_transform.filter(~F.col("SCN").rlike("<"))
-          #log_ora_transform = log_ora_transform.filter(~F.col("TimeStamp").cast('string').rlike("1970"))
-
 
           # log_ora_transform.write.mode('overwrite').parquet(self.bucket_name_out)
           # log_ora_transform = self.spark_app.read.parquet(self.bucket_name_out)
           
-          jdbcPort = 8443
-          # jdbcHostname = sys.argv[1]
-          file_ch_host = open("./ch_host", 'r')
-          jdbcHostname = file_ch_host.readline().splitlines()[0]
-          file_ch_host.close()
-          print(jdbcHostname)
-          # jdbcHostname = "c-c9q1dg4adc02478u5omv.rw.mdb.yandexcloud.net"
-          jdbcDatabase = "db1"
-          jdbcUrl = f"jdbc:clickhouse://{jdbcHostname}:{jdbcPort}/{jdbcDatabase}?ssl=true"
-          
-          # Запись в ClickHouse-таблицу с именем csv_data_oralog
-          log_ora_transform.write.format("jdbc") \
-          .mode("overwrite") \
-          .option("url", jdbcUrl) \
-          .option("dbtable", "data_oralog") \
-          .option("createTableOptions", "ENGINE = MergeTree() ORDER BY SCN") \
-          .option("user","user1") \
-          .option("password","Tratatam;3434") \
-          .save()
           log_ora_transform.show()
           log_ora_transform.printSchema()
           rows = log_ora_transform.count()
           print(f"DataFrame Rows count : {rows}")
+          return log_ora_transform
 
           # log_ora_transform.filter(F.col("SCN") == '12934735784').show(truncate=False)
     
@@ -159,7 +160,9 @@ def main():
           # # print(delta_time)
           
           # Обработка файла
-          file_transform.transform_oralog()
+          df_oralog = file_transform.transform_oralog()
+          file_transform.load_df_to_clickhouse(df_oralog)
+          
           print(f"Удаление преобразованного файла {file_transform.file_in}_t из HDFS")
           file_transform.delete_file_from_hdfs(file_transform.file_out)
           
